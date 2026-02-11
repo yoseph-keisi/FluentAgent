@@ -1,16 +1,48 @@
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
 *.pyo
-.env
+*.pyd
+*.so
 *.egg-info/
 dist/
 build/
+
+# Virtual environments
 .venv/
 venv/
-outputs/
-!outputs/.gitkeep
+env/
+
+# Pytest
 .pytest_cache/
-*.msh
-*.cas
-*.dat
+.coverage
+htmlcov/
+
+# Ruff / lint
 .ruff_cache/
+
+# Environment variables
+.env
+.env.local
+
+# VS Code
+.vscode/
+
+# Outputs (simulation results)
+outputs/*
+!outputs/.gitkeep
+
+# ANSYS / Fluent files
+*.cas
+*.cas.h5
+*.dat
+*.dat.h5
+*.msh
+*.prof
+*.jou
+*.trn
+*.log
+
+# Windows
+Thumbs.db
+Desktop.ini
