@@ -1,0 +1,39 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "fluent-agent"
+version = "0.1.0"
+description = "Autonomous CFD simulation orchestrator with adaptive retry logic and natural language interface"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+dependencies = [
+    "ansys-fluent-core>=0.20",
+    "pyyaml>=6.0",
+    "pydantic>=2.0",
+    "numpy>=1.24",
+    "pandas>=2.0",
+    "matplotlib>=3.7",
+    "click>=8.0",
+    "rich>=13.0",
+    "anthropic>=0.40",
+    "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "ruff>=0.1",
+]
+
+[project.scripts]
+fluent-agent = "fluent_agent.cli:main"
+
+[tool.ruff]
+line-length = 100
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/fluent_agent"]
