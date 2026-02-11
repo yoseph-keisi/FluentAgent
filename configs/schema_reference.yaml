@@ -1,0 +1,82 @@
+# Geometry input definition
+geometry:
+  source_type: csv  # Geometry file type: csv, stp, stl, igs
+  file_path: geometries/naca2412.csv  # Relative or absolute geometry path
+  chord_length: 1.0  # Characteristic length in meters
+  reference_area: 1.0  # Reference area for coefficients in square meters
+
+# Computational domain settings
+domain:
+  type: c-type  # Domain shape: c-type, h-type, rectangular
+  upstream_distance: 15  # Distance upstream of LE in chord lengths
+  downstream_distance: 25  # Distance downstream of TE in chord lengths
+  lateral_distance: 15  # Top/bottom clearance in chord lengths
+
+# Meshing controls
+mesh:
+  strategy: auto  # auto uses fineness presets; manual uses explicit sizes
+  fineness: medium  # coarse, medium, fine, ultra-fine
+  inflation_layers:
+    first_layer_height: null  # First prism layer height in meters; null = auto compute from y+
+    growth_rate: 1.2  # Inflation growth factor between successive layers
+    num_layers: 20  # Number of inflation layers on wall boundaries
+    target_y_plus: 1.0  # Wall y+ design target
+  surface_sizing:
+    min_size: 0.001  # Minimum surface element size in meters
+    max_size: 0.05  # Maximum surface element size in meters
+    curvature_normal_angle: 12  # Curvature refinement angle in degrees
+  quality_gates:
+    min_orthogonal_quality: 0.15  # Minimum acceptable orthogonal quality
+    max_skewness: 0.90  # Maximum acceptable cell skewness
+    max_aspect_ratio: 100  # Maximum acceptable aspect ratio
+  max_retry_attempts: 3  # Mesh regeneration attempts on failed quality checks
+
+# Flow and fluid properties
+flow:
+  reynolds_number: 3.0e6  # Reynolds number based on chord length
+  freestream_velocity: 43.822  # Freestream speed in m/s
+  angle_of_attack: 0.0  # Incidence angle in degrees
+  mach_number: 0.13  # Freestream Mach number
+  fluid:
+    density: 1.225  # Fluid density in kg/m^3
+    viscosity: 1.7894e-5  # Dynamic viscosity in Pa.s
+
+# Solver setup and convergence control
+solver:
+  turbulence_model: k-omega-sst  # Turbulence model selection
+  pressure_velocity_coupling: coupled  # coupled, simple, simplec
+  discretization:
+    pressure: second-order  # Pressure interpolation scheme
+    momentum: second-order-upwind  # Momentum discretization scheme
+    turbulent_kinetic_energy: second-order-upwind  # k-equation discretization
+    specific_dissipation_rate: second-order-upwind  # omega-equation discretization
+  initialization: hybrid  # hybrid, standard, fmg
+  convergence:
+    residual_targets:
+      continuity: 1.0e-6  # Continuity residual target
+      x_velocity: 1.0e-6  # X-momentum residual target
+      y_velocity: 1.0e-6  # Y-momentum residual target
+      k: 1.0e-6  # Turbulent kinetic energy residual target
+      omega: 1.0e-6  # Specific dissipation rate residual target
+    max_iterations: 5000  # Hard solver iteration cap
+    monitor_cl: true  # Monitor lift coefficient convergence
+    monitor_cd: true  # Monitor drag coefficient convergence
+    cl_convergence_window: 100  # Window size for Cl stability check
+    cl_convergence_tolerance: 0.001  # Allowed Cl variation for convergence
+  adaptive_retry:
+    enabled: true  # Enable adaptive solver retry logic
+    max_retries: 3  # Maximum retry strategies to apply
+
+# Output generation controls
+output:
+  directory: outputs/run_001  # Output directory path for this run
+  save_case_file: true  # Save Fluent case file
+  save_data_file: true  # Save Fluent data file
+  export_residuals_csv: true  # Export residual history CSV
+  export_force_coefficients_csv: true  # Export Cl/Cd history CSV
+  generate_plots:
+    residuals: true  # Generate residual convergence plot
+    cl_cd_history: true  # Generate Cl/Cd history plot
+    pressure_coefficient: true  # Generate Cp(x/c) plot
+    wall_y_plus: true  # Generate wall y+ distribution plot
+  generate_report: true  # Generate markdown summary report

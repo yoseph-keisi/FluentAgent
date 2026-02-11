@@ -1,1 +1,1 @@
-"""FluentAgent - Autonomous CFD Simulation Orchestrator."""
+__version__ = "0.1.0"

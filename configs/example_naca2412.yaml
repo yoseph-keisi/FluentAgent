@@ -1,0 +1,76 @@
+geometry:
+  source_type: csv
+  file_path: geometries/naca2412.csv
+  chord_length: 1.0
+  reference_area: 1.0
+
+domain:
+  type: c-type
+  upstream_distance: 15
+  downstream_distance: 25
+  lateral_distance: 15
+
+mesh:
+  strategy: auto
+  fineness: medium
+  inflation_layers:
+    first_layer_height: null
+    growth_rate: 1.2
+    num_layers: 20
+    target_y_plus: 1.0
+  surface_sizing:
+    min_size: 0.001
+    max_size: 0.05
+    curvature_normal_angle: 12
+  quality_gates:
+    min_orthogonal_quality: 0.15
+    max_skewness: 0.90
+    max_aspect_ratio: 100
+  max_retry_attempts: 3
+
+flow:
+  reynolds_number: 3.0e6
+  freestream_velocity: 43.822
+  angle_of_attack: 0.0
+  mach_number: 0.13
+  fluid:
+    density: 1.225
+    viscosity: 1.7894e-5
+
+solver:
+  turbulence_model: k-omega-sst
+  pressure_velocity_coupling: coupled
+  discretization:
+    pressure: second-order
+    momentum: second-order-upwind
+    turbulent_kinetic_energy: second-order-upwind
+    specific_dissipation_rate: second-order-upwind
+  initialization: hybrid
+  convergence:
+    residual_targets:
+      continuity: 1.0e-6
+      x_velocity: 1.0e-6
+      y_velocity: 1.0e-6
+      k: 1.0e-6
+      omega: 1.0e-6
+    max_iterations: 5000
+    monitor_cl: true
+    monitor_cd: true
+    cl_convergence_window: 100
+    cl_convergence_tolerance: 0.001
+  adaptive_retry:
+    enabled: true
+    max_retries: 3
+
+output:
+  directory: outputs/run_001
+  save_case_file: true
+  save_data_file: true
+  export_residuals_csv: true
+  export_force_coefficients_csv: true
+  generate_plots:
+    residuals: true
+    cl_cd_history: true
+    pressure_coefficient: true
+    wall_y_plus: true
+  generate_report: true
