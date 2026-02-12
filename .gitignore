@@ -56,3 +56,9 @@ share/
 Lib/
 Scripts/
 share/
+
+# Virtual environments
+.venv/
+Lib/
+Scripts/
+share/
