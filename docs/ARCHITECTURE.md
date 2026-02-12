@@ -541,3 +541,5 @@ A FastAPI layer wraps the CLI commands. The orchestrator runs in a background ta
 | Data Handling          | NumPy, Pandas              | Arrays, DataFrames                    |
 | Build System           | Hatch (via pyproject.toml) | Packaging & dependency management     |
 | Testing                | Pytest                     | Unit & integration tests              |
+
+## Proposed Additions
