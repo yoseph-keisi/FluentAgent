@@ -50,3 +50,9 @@ Desktop.ini
 Lib/
 Scripts/
 share/
+
+# Virtual environments
+.venv/
+Lib/
+Scripts/
+share/
