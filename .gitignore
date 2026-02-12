@@ -46,23 +46,3 @@ outputs/*
 # Windows
 Thumbs.db
 Desktop.ini
-
-Lib/
-Scripts/
-share/
-
-# Virtual environments
-.venv/
-Lib/
-Scripts/
-share/
-
-# Virtual environments
-.venv/
-Lib/
-Scripts/
-share/
-.venv/
-Lib/
-Scripts/
-share/
