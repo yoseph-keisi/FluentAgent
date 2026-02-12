@@ -46,3 +46,7 @@ outputs/*
 # Windows
 Thumbs.db
 Desktop.ini
+
+Lib/
+Scripts/
+share/
