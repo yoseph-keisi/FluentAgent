@@ -62,3 +62,7 @@ share/
 Lib/
 Scripts/
 share/
+.venv/
+Lib/
+Scripts/
+share/
