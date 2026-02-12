@@ -657,3 +657,226 @@ git remote add origin https://github.com/yoseph-keisi/FluentAgent.git
 git branch -M main
 git push -u origin main
 ```
+
+---
+
+## M. Repository Hygiene and Environment Isolation
+
+### Critical Lessons Learned
+
+During parallel agent development, the repository entered a broken state due to virtual environment tracking. This section documents the recovery process and establishes practices to prevent recurrence.
+
+### Root Cause
+
+**Virtual environment directories (`Lib/`, `Scripts/`, `share/`, `.venv/`) were accidentally tracked in git**, causing:
+- 9,152 files tracked that should have been ignored
+- 4.3M lines of dependency code in version control
+- Merge conflicts during branch rebases (binary .exe files, package metadata)
+- Broken merge state requiring manual intervention
+
+### Why This Happened
+
+1. **Dependencies installed before .gitignore was complete** — `pip install -e ".[dev]"` was run before .gitignore properly excluded virtual environment directories
+2. **Worktrees created from contaminated branches** — branches with tracked virtual environments were used as worktree bases
+3. **Cross-branch environment pollution** — different agents installed dependencies in their worktrees, each creating unique virtual environment states that git attempted to merge
+
+### Recovery Steps Executed
+
+```powershell
+# 1. Abort any in-progress merge/rebase
+git merge --abort  # or git rebase --abort
+
+# 2. Remove all virtual environment tracking from main branch
+git rm -r --cached Lib Scripts share .venv 2>/dev/null
+git add .gitignore  # Ensure .gitignore is complete
+git commit -m "repository hygiene: remove virtual environment tracking permanently"
+git push origin main
+
+# 3. Clean each agent branch
+# For each branch, either:
+#   a) Soft reset to main and recommit only implementation files, OR
+#   b) git rm --cached to remove venv tracking, then rebase
+
+# 4. Force-push cleaned branches
+git push --force-with-lease
+
+# 5. Rebase all agent branches onto cleaned main
+# This must be done AFTER main is clean
+```
+
+### Mandatory .gitignore Entries
+
+**ALWAYS include these in .gitignore from the start:**
+
+```gitignore
+# Virtual environments (Python)
+.venv/
+venv/
+env/
+Lib/
+Scripts/
+share/
+pyvenv.cfg
+
+# Python compiled
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.claude/settings.local.json
+
+# Environment variables
+.env
+.env.local
+```
+
+### Correct Workflow for Virtual Environments
+
+#### Initial Setup (Once per Repository)
+
+```powershell
+# 1. Clone repository
+git clone <repo-url>
+cd <repo>
+
+# 2. Verify .gitignore is present and complete
+cat .gitignore  # Check for .venv/, Lib/, Scripts/, share/
+
+# 3. Create virtual environment
+python -m venv .venv
+
+# 4. Activate virtual environment
+.\.venv\Scripts\Activate.ps1  # Windows PowerShell
+# source .venv/bin/activate    # Linux/macOS
+
+# 5. Install dependencies ONLY after activation
+pip install -e ".[dev]"
+
+# 6. Verify virtual environment is NOT tracked
+git status  # Should NOT show Lib/, Scripts/, .venv/
+```
+
+#### Worktree Setup (For Parallel Development)
+
+```powershell
+# 1. Create worktree
+git worktree add C:\path\to\worktree\agent-b agent-b/branch-name
+
+# 2. Navigate to worktree
+cd C:\path\to\worktree\agent-b
+
+# 3. Create virtual environment IN THE WORKTREE
+python -m venv .venv
+
+# 4. Activate and install
+.\.venv\Scripts\Activate.ps1
+pip install -e ".[dev]"
+
+# 5. Verify .gitignore excludes virtual environment
+git status  # Should be clean or show only your implementation files
+```
+
+#### Before EVERY Commit
+
+```powershell
+# Always check git status before committing
+git status
+
+# If you see Lib/, Scripts/, .venv/, or share/:
+# DO NOT COMMIT. Something is wrong with .gitignore.
+
+# Verify only implementation files are staged
+git diff --cached --stat
+
+# Commit only if status is clean
+git commit -m "..."
+```
+
+### Tool Invocation on Windows
+
+**Always use `py -m` for tool invocation**, not bare tool names:
+
+```powershell
+# Correct
+py -m pytest
+py -m ruff check src/
+py -m fluent_agent.cli --help
+
+# Incorrect (may use wrong Python interpreter)
+pytest
+ruff check src/
+fluent-agent --help
+```
+
+### Merge Discipline
+
+1. **Never merge while conflicts exist** — resolve or abort, never leave repository in conflicted state
+2. **Always rebase feature branches onto main before merging** — ensures linear history and catches conflicts early
+3. **Never force-push to main** — use force-push only on feature branches after rebases
+4. **Verify clean working tree before branch creation** — `git status` should show clean state
+
+### Pre-Merge Checklist
+
+Before requesting a merge to main:
+
+```powershell
+# 1. Verify no virtual environment tracking
+git status  # Should NOT show Lib/, Scripts/, .venv/, share/
+
+# 2. Verify only scope files are changed
+git diff --name-only origin/main  # Should match your agent's scope
+
+# 3. Verify tests pass (in virtual environment)
+.\.venv\Scripts\Activate.ps1
+py -m pytest tests/
+
+# 4. Verify linter passes
+py -m ruff check src/ tests/
+
+# 5. Verify imports work
+py -c "from fluent_agent import config, constants, physics_rules, geometry, cli, logger; print('OK')"
+```
+
+### Recovery Commands Reference
+
+If you accidentally track virtual environments:
+
+```powershell
+# Stop tracking (but keep local files)
+git rm -r --cached Lib Scripts share .venv
+
+# Stage .gitignore update
+git add .gitignore
+
+# Commit removal
+git commit -m "fix: remove virtual environment from tracking"
+
+# Push to remote
+git push origin <branch-name>
+```
+
+### Architecture-Level Principle
+
+**Virtual environments are runtime artifacts, not source code.**
+
+- Source code: committed to git
+- Dependencies: declared in `pyproject.toml`, installed at runtime
+- Virtual environments: ephemeral, created locally, never committed
+
+This separation ensures:
+- Repository stays small (~MB, not GB)
+- Merges are conflict-free
+- Different developers can use different Python versions
+- CI/CD systems can recreate environments reliably
+
+---
